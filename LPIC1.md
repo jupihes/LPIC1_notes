@@ -55,9 +55,11 @@ Enterprise Environments
 
 
 My ubuntu details:
+<!--
 ```yaml
 
 ```
+-->
 
 - share folder : `D:\Hesam\Linux_shared`
 
@@ -1643,6 +1645,7 @@ Device     Boot   Start     End Sectors  Size Id Type
 /dev/sdb2       1050624 1071103   20480   10M  5 Extended
 ```
 
+
 ```bash
 ls -l /dev/sd*
 fdisk /dev/sdb
@@ -1749,7 +1752,8 @@ root@hes:~# vi /etc/fstab
 /dev/disk/by-uuid/ecb84121-5aa7-4b01-8a6d-b4433dc5e7c4 /boot ext4 defaults 0 1
 /swap.img       none    swap    sw      0       0
 ~
-	 ```
+```
+###### fstab file structure 
 		- 6 item with 1 space between
 
 ![](fstab.png)
@@ -1795,8 +1799,6 @@ Here are the key methods to find the UUID of partitions in Linux:
 By using these methods, you can reliably retrieve UUIDs for partitions in Linux, which is essential for many system administration and scripting tasks.
 
 --- 
-
-
 
 ## Session 8
  
@@ -1960,15 +1962,234 @@ Linux_shared                        1000 -999000 1000000     - /media/sf_Linux_s
 - RAM : 2TB, swap size? 5TB ? no ~~5TB~~
 	- per use case: 8 GB at most
 	- how to understand `swap` allocated volume is low or high?
+- What can be done if we understand `swap` part is not enough?
+![](swap_1.png)
+	- `/boot` can not be `LVM` partition
+	- if we have `LVM` partitions, part(s) from each can be catch and added to `swap`
+		- what is `LVM`
+	- if we have free space at the end of Hard, add
+	- no need neighbor partition, delete and add
+	- have money, buy new hard and put `swap` there
+		- limited place on other hard to be added. formatted `swap` to be added
+		- `swap` size issue solve, performance downgraded as `Kernel` need to manage 2 `swap` parts resources and decide
+	- command to check `swap` - `free -h` 
+```bash
+free -h
+               total        used        free      shared  buff/cache   available
+Mem:           1.9Gi       322Mi       649Mi       1.1Mi       1.1Gi       1.6Gi
+Swap:          1.6Gi          0B       1.6Gi
+```
+- `swap` with 2 other 
+![](swap_3part.png)
+- where is the partition`swap` located?
+	- does not have mount point - not visible with `df -h` 
+```bash
+/dev/sda
+     sda1  # --> /
+     sda2  # --> /root
+
+parted -l 
+root@hes:/# lsblk
+NAME                      MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+loop0                       7:0    0     4K  1 loop /snap/bare/5
+loop1                       7:1    0  73.9M  1 loop /snap/core22/1663
+loop3                       7:3    0  73.9M  1 loop /snap/core22/1722
+loop4                       7:4    0 273.6M  1 loop /snap/firefox/5187
+loop5                       7:5    0 505.1M  1 loop /snap/gnome-42-2204/176
+loop6                       7:6    0  91.7M  1 loop /snap/gtk-common-themes/1535
+loop7                       7:7    0  38.8M  1 loop /snap/snapd/21759
+loop8                       7:8    0  44.3M  1 loop /snap/snapd/23258
+loop9                       7:9    0 273.7M  1 loop /snap/firefox/5437
+sda                         8:0    0    10G  0 disk
+├─sda1                      8:1    0     1M  0 part
+├─sda2                      8:2    0   1.8G  0 part /boot
+└─sda3                      8:3    0   8.2G  0 part  # LVM 
+  └─ubuntu--vg-ubuntu--lv 252:0    0   8.2G  0 lvm  /
+sdb                         8:16   0     1G  0 disk
+├─sdb1                      8:17   0   511M  0 part
+├─sdb2                      8:18   0     1K  0 part
+└─sdb5                      8:21   0     2M  0 part
+sr0  
+```
+- `swap` is under `LVM` part
+
+![](partition_swap.png)
+###### steps for adding to `swap` 
+Almost steps of default partitioning with few differences
+0. cable connection
+1. partitioning                                     `fdisk`
+2. file system selection 
+We need to change `Id system` Linux, = `83`, to `swap` = `82`
+```bash
+fdisk Command (m for help): m
+
+   l   list known partition types
+   t   change a partition type
+```
+
+3. format                                             `mkswap  <>`
+4. no `mount point`
+5. add to system `swap`                      `swapon` and `swapoff`
+6. to view                                             `free -h`
 
 
+- what if still `swap` size is low?
+	- make a file of 500 MB inside partition
+```bash 
+touch f1
+echo "......." > f2 # 500 M characte is needed as each 1 char is one Byte
+echo "......." >> f3 # append
+# use file zero @ /dev/zero
+dd if=/dev/zero  of=/root/myswap  bs=500M count=1 status=progress 
+    # block size, count 
+    # other usage -> low level backup
+
+ls -lh
+mkswap  /root/myswap
+free -h
+swapon /root/myswap
+free -h
+```
+	- change to `swap` type
+![](partition_swap_inside.png)
 
 
+![](swap_dd.png)
 
-==My location on **2:27:32 ??? **==
+- in operational environments, at least 3 partition is needed
+	- `Kernel` not load from `LVM` partitions   # to check
+	
+- `kernel` write footprints at `/proc`
+```bash
+root@hes:~# cat /proc/swaps
+Filename                                Type            Size            Used            Priority
+/swap.img                               file            1640444         0               -2
+```
+- partition better than file
+- one location is better than some locations 
+- make permanent by write `/etc/fstab`
+	- how to write `mount point` of `swap`
+	- just something is needed to fill between spaces: `swap, /swap, none
+		- `sw` instead of `defaults`
+		- reboot to added to `swap` - file reeded to add
+			- how to add without reboot?
+				- `swapon -a`
+
+- `kernel` has details of stuff available at `/proc`
+    - `cat /proc/meminfo 
+```bash
+root@hes:~# cat  /proc/meminfo
+MemTotal:        2015460 kB
+MemFree:          446128 kB
+MemAvailable:    1630164 kB
+Buffers:           75848 kB
+Cached:          1165844 kB
+...
+```
+- `cat /proc/cpuinfo`
+```bash
+root@hes:~# cat  /proc/cpuinfo
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 154
+model name      : 12th Gen Intel(R) Core(TM) i5-1235U
+stepping        : 4
+cpu MHz         : 2495.976
+...
+```
+- `cat /proc/version`  - 
+```bash
+cat  /proc/version
+Linux version 6.8.0-45-generic (buildd@lcy02-amd64-115) (x86_64-linux-gnu-gcc-13 (Ubuntu 13.2.0-23ubuntu4) 13.2.0, GNU ld (GNU Binutils for Ubuntu) 2.42) #45-Ubuntu SMP PREEMPT_DYNAMIC Fri Aug 30 12:02:04 UTC 2024
+```
+
+###### Permissions in Linux
+- how to see file permission: `ls -l`
+```bash
+root@hes:/# ls -l
+total 1640536
+lrwxrwxrwx   1 root root          7 Apr 22  2024 bin -> usr/bin
+drwxr-xr-x   2 root root       4096 Feb 26  2024 bin.usr-is-merged
+drwxr-xr-x   4 root root       4096 Oct  1 14:12 boot
+dr-xr-xr-x   2 root root       4096 Apr 23  2024 cdrom
+drwxr-xr-x  19 root root       4220 Jan  1 11:21 dev
+drwxr-xr-x   2 root root       4096 Dec 30 12:01 disk2
+drwxr-xr-x  98 root root       4096 Dec 30 16:23 etc
+drwxr-xr-x   3 root root       4096 Oct  1 14:24 home
+lrwxrwxrwx   1 root root          7 Apr 22  2024 lib -> usr/lib
+drwxr-xr-x   2 root root       4096 Feb 26  2024 lib.usr-is-merged
+lrwxrwxrwx   1 root root          9 Apr 22  2024 lib64 -> usr/lib64
+drwx------   2 root root      16384 Oct  1 14:08 lost+found
+drwxr-xr-x   3 root root       4096 Oct 26 07:29 media
+
+```
+
+  - 10 `-` each with meaning as
+	- File type: `-`, `d`, ...
+	- Permission settings:  9 items`rw-r--r--`
+	- Extended attributes: dot (`.`)
+
+| File Type         | Command to create the File | Located in           | The file type using “ls -l” is denoted using | FILE command output                               |
+| ----------------- | -------------------------- | -------------------- | -------------------------------------------- | ------------------------------------------------- |
+| Regular FIle      | `touch`                    | Any directory/Folder | –                                            | PNG Image data, ASCII Text, RAR archive data, etc |
+| Directory File    | `mkdir`                    | It is a directory    | d                                            | Directory                                         |
+| Block Files       | `fdisk`                    | /dev                 | b                                            | Block special                                     |
+| Character Files   | `mknod`                    | /dev                 | c                                            | Character special                                 |
+| Pipe Files        | `mkfifo`                   | /dev                 | p                                            | FIFO                                              |
+| Symbol Link Files | `ln`                       | /dev                 | l                                            | Symbol link to <linkname>                         |
+| Socket Files      | `socket() system call`     | /dev                 | s                                            | Socket                                            |
+![](file_perm1.png)
+Permissions
+
+- User owner:  owner of file - sample `root`
+- Group owner:  sample `edari`
+- Others: not file owner and not in Group owner
+![](file_perm2.png)
+what type of permission `Ali` have? wrong as permissions are per file
+- `r` (read): 4 
+- `w` (write): 2
+- `x` (execute): 1 - if executable file
+`rwxrw-r--`
+what permissions `ali` has?
+- mention all he has and has not 
+	- Ali on `myfile1`
+		- have all permissions = all `r, w, e`
+	- Sara on `myfile1`
+		- only have `read` and `write`, can not `execute`
+
+Permission of file : In the `permission value`, the first digit corresponds to the `user`, the second digit to the `group`, and the third digit to `others`.
+- 3 digit number : 764 for `myfile1`
+	- in real 3 other same logic is there - `sst` 
+		- they may affect only if the relevant part in `user`, `group`, or `others` is `x` # @3:15:15 ???
+		- s: SUID
+		- s: SGID
+		- t: Sticky
+	-  File permission value conversion
+		 - `r-xr---w-` $\to$ 542
+		 - 316 (0316) $\to$ `--x--xrw-`  
+			 - 2316 $\to$ `--x--srw-`  2nd `x` converted to `s`
+- 4 digit number for `myfile1`: 0764
+	- Owner: `rwx` = 4+2+1 = 7
+	- Group: `rw-` = 4+0+0 = 4
+	- Others: `r--` = 4+0+0 = 4
+
+
+```bash
+chmod 401 <file name> # `r-------x`
+chmod 123 <file name> # `--x-w--wx`
+chmod 435 <file name> # `r---wxr-x`
+ls -l
+```
+
+- admin job responsibilities 
+	- disk space management
 
 ## Session 9
  
+
+
+
 missed
 
 ==My location on **2:27:32 ??? **==
@@ -2184,11 +2405,11 @@ runlevels
 
 Bootloaders:
 
-| Name                                   | abb name | address               |                        |
-| -------------------------------------- | -------- | --------------------- | ---------------------- |
-| LILO                                   | lilo     | `/etc/lilo.conf`      |                        |
-| Grand unified Bootloader (GRUB legacy) | grub     | `/boot/grub/menu.lst` | /boott/grub/grub.conf  |
-| GRUB2                                  |          | `/boot/grub/grub.cfg` | `/boot/grub2/grub.cfg` |
+| Name                                   | abb name | address               |                         |
+| -------------------------------------- | -------- | --------------------- | ----------------------- |
+| LILO                                   | lilo     | `/etc/lilo.conf`      |                         |
+| Grand unified Bootloader (GRUB legacy) | grub     | `/boot/grub/menu.lst` | `/boot/grub/grub.conf`  |
+| GRUB2                                  |          | `/boot/grub/grub.cfg` | `/boot/grub2/grub.cfg`  |
 
 
 
@@ -2500,7 +2721,6 @@ cd /etc/yum.repos.d/
 # make local 
 
 
-
 [LocalRepo]
 name=
 ```
@@ -2515,7 +2735,7 @@ joined at 6:50
 ##### Scripting 
 
 - shell scripting
-- bash scripting
+	- bash scripting
 
 ```bash
 bash myscript
@@ -2563,7 +2783,15 @@ int main():
 
 
 ```bash
-which python
+which python3 # identify where python3 
+              # for `shebang` line: #! /user/bin/python3
+/usr/bin/python3
+
+which python3.12
+/usr/bin/python3.12 #! /usr/bin/python3.12
+
+which perl
+/usr/bin/perl # #! /usr/bin/perl
 ```
 ###### `bash` scripting
 ```bash
@@ -2585,15 +2813,10 @@ ls - l /bin/top
 which top
 ls -l `which top`
 ls -l $(which top)
-
-
-
-
-
 ```
 
 ```bash
-#  /bin/bash
+#!  /bin/bash
 echo "Start time is: `date`"
 sleep 8
 echo "End time is: `date`"
@@ -2605,14 +2828,14 @@ date
 ```
 
 ```bash
-#  /bin/bash
+#!  /bin/bash
 echo "Start time is: `date   ???? `"
 sleep 8
 echo "End time is: $(date ?? )"
 ```
 
 ```bash
-#  /bin/bash
+#!  /bin/bash
 echo "your 1st number is: $1"
 echo "your 2st number is: $2"
 total=`expr $1 + $2`
@@ -2622,17 +2845,17 @@ echo "your total is: $total"
 `./myscript.sh 7 + 8`
 
 ```bash
-#  /bin/bash
+#!  /bin/bash
 echo -n "please enter your age: "
 read age
 total=`expr $age \* 365` # \ is scape character
 echo "your age in days is : $total"
 ```
 
-exercise
+**Exercise** 
 get 2 numbers from user and print sum of them
 ```bash
-#  /bin/bash
+#!  /bin/bash
 echo -n "please enter number 1: "
 read number1
 echo -n "please enter number 2: "
@@ -2642,7 +2865,7 @@ echo "sum of ? and ? is : $total"
 ```
 
 ```bash
-#  /bin/bash
+#!  /bin/bash
 if [ $USER = root]
     then echo "You are allowed :)"
     else echo "You are not allowed :("
@@ -2652,7 +2875,7 @@ fi
 67:40
 
 ```bash # for loop
-#  /bin/bash
+#!  /bin/bash
 for i in 1 2 3 4 5
    do
       echo "your room number is: #$i " 
@@ -2697,7 +2920,6 @@ min 80:00
 ###### `cron`
 
 ```bash
-
 - crond^
 crontab -l --> list
 crontab -r --> remove
@@ -2724,7 +2946,7 @@ MIN    HRS    DOM    MOY    DOW    COM
 read from end to start to understand
 
 
-anacron     anacron for desktops
+`anacron`     `cron` for desktops
 
 - every 7 minutes or every 7 hours?
 exercise 3 
@@ -2742,8 +2964,8 @@ memorize dictation of month and days
 what is computer network?
 2 device connect in a medium with same protocol
 
-OSAI layers
-All people seem ti need data processing
+OSI layers
+All people seem to need data processing
 Please do not Throw sausages Pizza Away
 
 client                      Server
@@ -2754,7 +2976,7 @@ Transport                  T
 Network                   N
 Data Link                  D
 Physical                     P
-     
+    
      ----------------
 
 
@@ -2856,7 +3078,7 @@ ifconfig eth0 192.168.10.11/28 # 16 subnets each with 16 hostids
                                # we need to make rout to connect these 
 ```
 
-$min \x 194$  
+==at minute 194 =  ???==
 
 - Debian based
  `/etc/network/interfaces`
@@ -2873,7 +3095,6 @@ auto enp0s3
 
 
 ```
-
 
 
 - Redhat based
@@ -2898,7 +3119,7 @@ route -n # numeric
 route add defualt ????
 ```
 
-####### DNS
+###### DNS
 `/etc/hosts`
 `192.168.10.11   oradb.lpir.org    oradb`
 `192.168.10.12   appsrv.lpir.org    appsrv`
@@ -2984,7 +3205,7 @@ make up and down
 
 picture
 
-####### SSH 
+###### SSH 
 - port 22
 
 - `opensssh-client`     `openssh-server` server_A
@@ -3002,3 +3223,4 @@ scp username_A@IP_A:/path  username_B@IP_B:/path
 ```
 
 
+- Exam next week =  @ 13:00
