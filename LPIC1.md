@@ -11,7 +11,7 @@ Linux $\rightarrow$ Core or Kernel
 
 40 years ago architecture $\rightarrow$ Multiuser Single server
 
-![[Pasted image 20240828142536.png]]
+![](/images/System_Arch.png)
 
 
 OS = Kernel + tools
@@ -142,7 +142,7 @@ have 6 text mode and one graphical mode
 
 
 
-![](./images/linux/Linux_modes.png)
+![](./images/Linux_modes.png)
 
 
 right Ctrl + 
