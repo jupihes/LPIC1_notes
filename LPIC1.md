@@ -395,7 +395,7 @@ ls --hide=Desktop
     1. user command - default user - `/bin` 
     8.  system command   - `/sbin`
 
-![](./images/linux/Ls_man.png)
+![](./images/Ls_man.png)
 - search `/`   
 	- `n` : next match
 	- `N` : previous match
@@ -421,10 +421,10 @@ ls --hide=Desktop
 		- `..` currnet directory
 	- relative
 
-![](./images/linux/addressing.png)
+![](./images/addressing.png)
 
 
-- `mkdir /root/1403/mehr/11/linux/class/`
+- `mkdir /root/1403/mehr/11/class/`
 	- `mkdir/root/1403`                                             `cd ~
 	- `mkdir/root/1403/mehr`                                  `mkdir ./1403 cd ~
 	- ...
@@ -478,7 +478,7 @@ echo Hesam > myinfo.mp3
 echo MH >> myinfo.mp3
 echo 09350000 >> myinfo.mp3
 
-cd /root/1043/mehr/11/Linux/calss  
+cd /root/1043/mehr/11/calss  
   
 echo "Hesam 
 MH  
@@ -523,10 +523,10 @@ date >> moz.txt
 
 
 **Exercise:** 
-1. make following path `/root/1403/mehr/18/linux/class/mydir
+1. make following path `/root/1403/mehr/18/class/mydir
     - since does not have `/` at end, it is file and should be made by touch
 ```shell
-mkdir /root/1403/mehr/18/linux/class/mydir
+mkdir /root/1403/mehr/18/class/mydir
 
 mkdir /root/1403
 cd ./1403/
@@ -534,12 +534,12 @@ mkdir /root/1403
 cd ./1403/
 
 ## or 
-mkdir -p /root/1403/mehr/18/linux/class
-cd /root/1403/mehr/18/linux/class
+mkdir -p /root/1403/mehr/18/class
+cd /root/1403/mehr/18/class
 touch mydir
 
 # or
-touch /root/1403/mehr/18/linux/class/mydir
+touch /root/1403/mehr/18/class/mydir
 ```
 
  2. remove file `mydir`
@@ -963,7 +963,7 @@ ls -li
 	
 ```
 inode      size     address
-35324      10G     /root/1403/aba/02/linux/class/myinfo    
+35324      10G     /root/1403/aba/02/class/myinfo    
 53297547   2K     /opt/f1    
 ```
 
@@ -2187,12 +2187,115 @@ ls -l
 
 ## Session 9
  
+ 
+###### Some notes on file permissions
+1. permission will become looser or not changes in real world when it goes from `user` towards `group` and `others` 
+	- not reasonable to see the other way around sample
+	- what permissions `ali` has on `f2`?
+		- `r` directly and rest form `others`
+![](permission_notes1.png)
+
+   2. you can be owner of a file and does not have full permission on that file
+	   - it depends on file importance.
+	   - owner of file can change ownership 
+	   - `ali` has on `f3` and `f4`?
+	    - `f3` only read and has full permission on `f4`
+![](permission_notes2.png)
+
+3. what is the `root` permission on `f5`?
+	- only `r` as it is on `others`
+4. what `root` can do on `f5`?
+	- all permissions - all things
+	- `root` control comes from other accesses it has
+
+![](permission_notes3.png)
+
+###### Change the ownership
+
+- access, permission, modes
+	- `chmod` # change mode
+	- `chown` # change owner
+	- `chmgrp` # change group
+	- `mv` # change file name
+![](change_ownership.png)
+
+ - permission for now: 764 change to 766
+	 - 3 possible methods
+```bash
+chmod 766 myfile1 # octal method 
+chmod o+w myfile1 # symbolic method 
+chmod --reference=<referencefile> <file or files> # reference method 
+   #example:
+   chmod --reference=/opt/f1.mp3 ~/music/*.mp3
+```
+- permission for  Directories
+```bash
+chmod 700 mydir1 # only on folder and not on files there 
+chmod 700 -R mydir1 # recurssive 
+                    # = on folder and all files there
+```
+
+- change user and group ownership 
+
+```bash
+chown reza:it myfile1 # = both of  below
+chown reza myfile1 
+chown :it myfile1
+
+chgrp it myfile1 = chown :it myfile1
+```
+
+- change ownership for  Directories
+```bash
+chown reza:it mydir1 # only on folder and not on files there 
+chmod reza:it -R mydir1 # recurssive 
+                    # = on folder and all files there
+```
+
+- change file name
+```bash
+mv <old name> <new name>
+```
+
+- symbolic method for changing permission
+	- `chmode ? myfile1
+		- `chmod ugo+x <> = chmod a+x <>`
+![](symbolic_ownership.png)
+`chmod u+x, g+w, o-r` ---> 
+- what are `rwx` meaning of file and directory?  
+
+![](rwx_meaning.png)
+
+- permission needed to delete file? 
+	- `rm` = `w` on directory
 
 
+- get detail status of file- `stat`
+![](file_status.png)
 
-missed
+   - `atime` = access time of file 
+   - `mtime` = last modification time of file - content of file
+   - `ctime` = last change time of file status = name, owner, group owner
+   -  `btime` = birth time  = create time (crtime) = ... not accurate and need configuration
 
-==My location on **2:27:32 ??? **==
+- `ls -l` - 6th column is time = `mtime`
+- `touch` - change time, all 3 by default. 
+	- we can tell to change only part
+	- we open a fill with `vi` and add `salam`, which times changes?
+		- all
+	- we `rm`, = delete a file, which times changes?
+		- not possible to check
+		- on directory: all 3 changes `atime`, `mtime` and `ctime` 
+
+    - backup files only changed within last week
+	    - `touch` special file to be included as `atime` will changed
+
+![](time_example.png)
+
+
+==My location on **0:51:40 ??? **==
+
+ 
 ## Session 10
  
 
