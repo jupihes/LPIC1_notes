@@ -907,7 +907,7 @@ ps # show
 ```
 - `process ID` = `PID` of `ps` changes every time as `ps` task is 2 print exiting processes and terminate
 - `PID` of `bash` is same. Interactive processes are like this = endless life time processes. 
-![](ps_processes.png)
+![](./images/ps_processes.png)
 - `exit` or `Ctrl+D` (left Ctrl)
 
 ```bash
@@ -976,7 +976,7 @@ inode      size     address
 			- finename  in table will be deleted
 			- summary of changes write in temp [recyclebin??]
 			- Hard is not cleaned and space is not freed - `restore` in `trash`
-		![file_deletion](file_deletion_process.png)
+		![file_deletion](./images/file_deletion_process.png)
 		- `rm` in `command mode`
 		     - pointer to file deleted
 			- finename  in table related row will be deleted
@@ -999,10 +999,10 @@ ls -l sda*
 df -h
 ```
 - disk partition
-![disk partition](disk_partition.png)
+![disk partition](./images/disk_partition.png)
 
 - logical vs physical partition understanding
-![](disk_partition1.png)
+![](./images/disk_partition1.png)
 
 - `mount point` -   2:20:00
     - a directory in logical domain (addressing domain) which is connected to partition in physical domain is called a `mount point`.
@@ -1153,10 +1153,10 @@ Both limited, but differences:
 |       Max 3       |       Max 1        |      Max 60       |
 - example: What is partition name connected to Secondary Master $\to$ IDE
    - `hdc`
-	![](partition_1.png)
+	![](./images/partition_1.png)
 - partition name on this hard
 	- add number to partition name - `hdc1`, `hdc2`, .... 
-![](partition_2.png)
+![](./images/partition_2.png)
 
 - example: we have 3 IDE, 2 SCSI, 1 SATA and 1 flash. What is flash name?
    SCSI, SATA and flash: `sd#`
@@ -1171,12 +1171,12 @@ Both limited, but differences:
 	- what happened to end of Disk? wasted - unallocated = free space
 	- maximum count limit reached (one dimension of limitation) - max Disk space not met
 
-![](partition_3.png)
+![](./images/partition_3.png)
 	- What we can do to use unallocated space
 		- format all and reparation again $\to$ ==whole data will be lost ????==
 		- if allowed to miss part of data
 			- sample possibilities
-![](partition_4.png)
+![](./images/partition_4.png)
 			- noting wasted: use last partition
 
 - example: 6th SCSI hard. what is name? `sdf`
@@ -1184,14 +1184,14 @@ Both limited, but differences:
 	- Normal admin will not do such.
 		- start from start of Disk 
 		- name starting from 1 as partition number
-![](partition_5.png)
+![](./images/partition_5.png)
 - example:
 	- logical inside `extended`
 	- the first logical should be `5` and  should be name in order
 	- last logical number = 64
 	- first `Logical` on `Extended` labeled 5
     - then we can have till 64 -  on `sdc` hard for example `sdc64`
-	 ![](partition_6.png)
+	 ![](./images/partition_6.png)
 
 
 
@@ -1211,7 +1211,7 @@ lrwxrwxrwx 1 root root 3 Oct 30 06:05 cdrom -> sr0
 ---
 ##### filesystems
 
-![](filesystem1.png)
+![](./images/filesystem1.png)
 - small partition $\le 2 TB \lt$  large partition
 
 the extended filesystem $\to$  `extfs` $\to$ `ext`
@@ -1297,13 +1297,13 @@ the extended filesystem $\to$  `extfs` $\to$ `ext`
 	
 
 [Comparison_of_file_systems](https://en.wikipedia.org/wiki/Comparison_of_file_systems)
-![](fs_comparision.png)
+![](./images/fs_comparision.png)
 - practical numbers may differ
 	- per need and use case we have to investigate and decide
 
 
 - Mounting logic explanation - start session 2 - continue example
-  ![](mount_example1.png) 
+  ![](./images/mount_example1.png) 
   - under `/mnt/disk2` 
   - add `SATA`
 	  - `VMDK` (Virtual Machine Disk) and `dynamically allocated` - `sdb`
@@ -1328,7 +1328,7 @@ mkfs -t ext2 /dev/sdb1 # -t type selection
                        # -t ext2
 ```
 - review what reported at the end 
-![](mkfs_sample1.png)
+![](./images/mkfs_sample1.png)
 - notes
 	- software vs hardware size difference
 	- 5%  of storage reserved for supper user
@@ -1756,7 +1756,7 @@ root@hes:~# vi /etc/fstab
 ###### fstab file structure 
 		- 6 item with 1 space between
 
-![](fstab.png)
+![](./images/fstab.png)
 
 |        col1         |    col2     |      col3       |    col4    |    col5     |                      col6                       |
 | :-----------------: | :---------: | :-------------: | :--------: | :---------: | :---------------------------------------------: |
@@ -1905,7 +1905,7 @@ Linux_shared                        1000 -999000 1000000     - /media/sf_Linux_s
 		- each one could be
 			- `fdisk -l`   # provide details for all disks
 			- `fdisk -l  /dev/sdb` 
-![](partition_q.png)
+![](./images/partition_q.png)
 
 - `#block` * `block_size` =  Size
 - How to check count logical?
@@ -1950,7 +1950,7 @@ Linux_shared                        1000 -999000 1000000     - /media/sf_Linux_s
 	1. page file (Windows)
 	2. swap
 - Least Recently Use (LRU) algorithm
-![](swap.png)
+![](./images/swap.png)
 
 - who use swap? Kernel
 -  what is `mount point` of swap? Kernel does not required as it knows where it writes.
@@ -1963,7 +1963,7 @@ Linux_shared                        1000 -999000 1000000     - /media/sf_Linux_s
 	- per use case: 8 GB at most
 	- how to understand `swap` allocated volume is low or high?
 - What can be done if we understand `swap` part is not enough?
-![](swap_1.png)
+![](./images/swap_1.png)
 	- `/boot` can not be `LVM` partition
 	- if we have `LVM` partitions, part(s) from each can be catch and added to `swap`
 		- what is `LVM`
@@ -1980,7 +1980,7 @@ Mem:           1.9Gi       322Mi       649Mi       1.1Mi       1.1Gi       1.6Gi
 Swap:          1.6Gi          0B       1.6Gi
 ```
 - `swap` with 2 other 
-![](swap_3part.png)
+![](./images/swap_3part.png)
 - where is the partition`swap` located?
 	- does not have mount point - not visible with `df -h` 
 ```bash
@@ -2013,7 +2013,7 @@ sr0
 ```
 - `swap` is under `LVM` part
 
-![](partition_swap.png)
+![](./images/partition_swap.png)
 ###### steps for adding to `swap` 
 Almost steps of default partitioning with few differences
 0. cable connection
@@ -2051,10 +2051,10 @@ swapon /root/myswap
 free -h
 ```
 	- change to `swap` type
-![](partition_swap_inside.png)
+![](./images/partition_swap_inside.png)
 
 
-![](swap_dd.png)
+![](./images/swap_dd.png)
 
 - in operational environments, at least 3 partition is needed
 	- `Kernel` not load from `LVM` partitions   # to check
@@ -2139,13 +2139,13 @@ drwxr-xr-x   3 root root       4096 Oct 26 07:29 media
 | Pipe Files        | `mkfifo`                   | /dev                 | p                                            | FIFO                                              |
 | Symbol Link Files | `ln`                       | /dev                 | l                                            | Symbol link to <linkname>                         |
 | Socket Files      | `socket() system call`     | /dev                 | s                                            | Socket                                            |
-![](file_perm1.png)
+![](./images/file_perm1.png)
 Permissions
 
 - User owner:  owner of file - sample `root`
 - Group owner:  sample `edari`
 - Others: not file owner and not in Group owner
-![](file_perm2.png)
+![](./images/file_perm2.png)
 what type of permission `Ali` have? wrong as permissions are per file
 - `r` (read): 4 
 - `w` (write): 2
@@ -2193,14 +2193,14 @@ ls -l
 	- not reasonable to see the other way around sample
 	- what permissions `ali` has on `f2`?
 		- `r` directly and rest form `others`
-![](permission_notes1.png)
+![](./images/permission_notes1.png)
 
    2. you can be owner of a file and does not have full permission on that file
 	   - it depends on file importance.
 	   - owner of file can change ownership 
 	   - `ali` has on `f3` and `f4`?
 	    - `f3` only read and has full permission on `f4`
-![](permission_notes2.png)
+![](./images/permission_notes2.png)
 
 3. what is the `root` permission on `f5`?
 	- only `r` as it is on `others`
@@ -2208,7 +2208,7 @@ ls -l
 	- all permissions - all things
 	- `root` control comes from other accesses it has
 
-![](permission_notes3.png)
+![](./images/permission_notes3.png)
 
 ###### Change the ownership
 
@@ -2217,7 +2217,7 @@ ls -l
 	- `chown` # change owner
 	- `chmgrp` # change group
 	- `mv` # change file name
-![](change_ownership.png)
+![](./images/change_ownership.png)
 
  - permission for now: 764 change to 766
 	 - 3 possible methods
@@ -2260,18 +2260,18 @@ mv <old name> <new name>
 - symbolic method for changing permission
 	- `chmode ? myfile1
 		- `chmod ugo+x <> = chmod a+x <>`
-![](symbolic_ownership.png)
+![](./images/symbolic_ownership.png)
 `chmod u+x, g+w, o-r` ---> 
 - what are `rwx` meaning of file and directory?  
 
-![](rwx_meaning.png)
+![](./images/rwx_meaning.png)
 
 - permission needed to delete file? 
 	- `rm` = `w` on directory
 
 
 - get detail status of file- `stat`
-![](file_status.png)
+![](./images/file_status.png)
 
    - `atime` = access time of file 
    - `mtime` = last modification time of file - content of file
@@ -2290,7 +2290,7 @@ mv <old name> <new name>
     - backup files only changed within last week
 	    - `touch` special file to be included as `atime` will changed
 
-![](time_example.png)
+![](./images/time_example.png)
 
 
 ==My location on **0:51:40 ??? **==
