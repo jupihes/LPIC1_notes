@@ -2293,7 +2293,352 @@ mv <old name> <new name>
 ![](./images/time_example.png)
 
 
-==My location on **0:51:40 ??? **==
+![](./images/rwx_meaning.png)
+
+- permission needed to delete file? 
+	- `rm` = `w` on directory
+
+
+- get detail status of file- `stat`
+![](./images/file_status.png)
+
+   - `atime` = access time of file 
+   - `mtime` = last modification time of file - content of file
+   - `ctime` = last change time of file status = name, owner, group owner
+   -  `btime` = birth time  = create time (crtime) = ... not accurate and need configuration
+
+- `ls -l` - 6th column is time = `mtime`
+- `touch` - change time, all 3 by default. 
+	- we can tell to change only part
+	- we open a fill with `vi` and add `salam`, which times changes?
+		- all
+	- we `rm`, = delete a file, which times changes?
+		- not possible to check
+		- on directory: all 3 changes `atime`, `mtime` and `ctime` 
+
+    - backup files only changed within last week
+	    - `touch` special file to be included as `atime` will changed
+
+![](./images/time_example.png)
+
+**Exercise:**
+Make 9 files as `a1`,`a2`,`a3` , `f1`,`f2`,`f3` and `z1`,`z2`,`z3` beside `sample.. 
+```bash
+touch a1 a2 a3 f1 f2 f3 z1 z2 z3
+touch {a,f,z}{1,2,3} # {} - only wildcard which use all members
+                     # could be used for read and make
+```
+- permission 700 to all
+```bash
+chmod 700 sample # green color for `x` part
+ls -l
+chmod --reference=./sample  ./a*
+chmod --reference=./sample  ./{a,f,z}{1,2,3} # checked 
+```
+- what is default permission on make?
+	- file - 0644
+	- directory - 0755
+	- difference = 111 = `--x--x--x` : most files do not need execution
+	- `cd` and rest of actions on directory need `x`
+	- how this done? `umask 0022`
+		- file: 0666 - 0022 = 0644
+		- dir: 0777 - 0022 = 0755
+		- cte. - umask = default permission
+```bash
+cd /root/anisa
+rm -rf *
+
+touch f{1,2,3}  
+mkdir d{1,2,3}
+```
+
+- Design `umask` so that any new file only and only get `r` for `owner`
+	- file: `r--------` = 400 
+		- file: 0666 - `umask` = 0400 $\to$ `umask` = 0266
+	- directory: 
+		- = file + 111 = 0511
+		- 0777 - `umask` = 0511
+- change `umask` for a session 
+	- `umask  0266`
+- permanent change `umask`
+	- change in a related file
+
+- `root` and `default user` have different permission
+- `lsmod` list of modules #LPIC2
+- `lsattr` list of attributes per file 
+
+**Exercise**
+![](./images/permission_exer.png)
+
+###### Links
+1. hard link (link)
+2. symbolic link (sym link)   # in Microsoft named `shortcut`
+
+`ln -s <file address> link_name`
+![](./images/symlink.png)
+
+```bash
+ll
+alias ll # get what is define as ll
+         # alias ll='ls -alF'
+alias    # get all alias
+alias hmh='df -hT' # defining new alias
+```
+- when 2 `short link` are same?
+	- no- different `inode`
+	- has different addresses
+	- file size difference
+```bash
+ln -s myinfo link1
+ln -s ./myinfo link2
+```
+-	links has sensitivity to 
+	-  address
+	- file name
+![](./images/short_link1.png)
+
+- What to do so that address change do not affect links?
+	- use `absolute address`
+```bash
+ln -s /root/143/aban/23/class/myinfo  link3
+ln -s /root/143/aban/23/class/myinfo  ../../link4
+ln -s /root/143/aban/23/class/myinfo  /home/test55
+ln -s /root/143/aban/23/class/myinfo  /opt/f6
+ln -s /root/143/aban/23/class/myinfo  /var/log/zoro7.txt
+ln -s /root/143/aban/23/class/myinfo  ~/87654321
+ln -s /root/143/aban/23/class/myinfo  /boot/xxyyzz9 # even on other partition
+```
+- if file deleted or modified or eliminated, `symbolic link` will not work! 
+	- not a method to store data
+	- if there are serries of linked  `symbolic link`,  drop of any link will result in 
+- how to look for `symbolic link` which are refereeing to a file we have?
+	- `find`
+```bash
+which <command> # 
+whereis <command> # 
+
+find <address>
+find  /home/ali  # search from here down
+find  .          # search from here down
+find /           # all below /
+
+find / -name test # name
+find / -name "t*" # search with wildcard
+find / -name "*.mp3" # search with wildcard
+find / -user ali # search for user  
+find / -group it # search for group
+find / -perm  0444 # search files with permission
+find / -perm  ! 0600 # search files with permission
+find / -size  +20M # search files with size
+find / -size  -50M # search files with size
+find / -mtime  -14 # search files with mtime - day as defualt
+find / -ctime  -7 # search files with ctime
+find / -atime  -2 # search files with atime
+
+find / -mmin  -60 # search files with mtime - minute
+find / -cmin  -30 # search files with ctime
+find / -amin  -5 # search files with atime
+
+                 # look for file, socket, pipe, directory
+                 
+find / -name test -type d # name limit to directory
+find / -name test -type - # name limit to regular files
+find / -name test -type f # name limit to ?
+find / -name test -type d # name limit to directory
+
+                 # and all you have in mind
+find /tmp -name "*.pdf" -user ali -group it -size +25 -perm 0444 
+```
+- pdf for 35 ways to find
+```bash
+find / -lname /root/143/aban/23/class/myinfo
+```
+  - find some footprints in `/proc`
+  - use `-print` in `find`
+```bash
+find / -lname /root/143/aban/23/class/myinfo -print 2> /dev/null
+				# 2> error part of message
+				# /dev/null    recyclebin
+```
+- how to clean all such which are found
+	- `-exec`
+
+```bash
+find / -lname /root/143/aban/23/class/myinfo -print 2> /dev/null -exec rm -f {} \;
+				# {}  set all you find
+				# \ scape character
+				# end of exec need to closed by ;
+				# use \; so that ; not be enterpereted seperator of new command 
+```
+
+- `;` between some commands $\to$ independent command
+```bash
+mkdir footbal; pwd; ls -l
+```
+- we need to make folder `my dir`
+	- `\ scape character` : only char after it to not be used / interpreted 
+```bash
+mkdir my dir # make 2 different folders, space work as seprator
+
+mkdir my\ dir # \ scape character
+              # folder name "my dir"
+mkdir my\ \ dir # \ scape character
+              # folder name "my  dir"
+```
+
+- Hard link
+	- whatever files we made or system made till now
+		- physically blocks used with some name
+		- Logical names for an existing physical file
+		- Hard link connected to `inode`
+		- reduce redundancy 
+		- address backup of a file
+    - `ln <existing_file> <link_name>`
+
+![](./images/hardlink1.png)
+- short summary of `symbolic` and `hard` link
+![](links.png)
+- sample 1 file with 3 `hard link`
+![](./images/hardlink2.png)
+
+![](./images/hard_symbolic_link.png)
+- how to see `inode` of file
+	- `ls -i`
+	- `stat <filename>`
+
+
+![](./images/hardlink3.png)
+- `group` and `permission` change sample
+![](./images/hardlink4.png)
+- `hard link` only work in one `partition`
+	- not possible to make `hard link` to file in other `partition`
+- how to find?
+```bash
+find / -samefile <name> -print 2> /dev/null
+
+find / -inum <inum number> -print 2> /dev/null
+## action to do to all set of files (here is only 1 actual)
+find / -samefile <name> -print -exec rm -f 666 {} \;
+
+
+find / -samefile <name> -print -exec chmod 666 {} \;
+find / -samefile <name> -print -exec chown smith {} \;
+
+find / -name "*.mp3" -print -exec chmod 666 {} \;
+```
+- sample use case
+	- films categorization per `Director`, `year` and `genre` in different directories
+###### Command sequences
+- `echo`
+```bash
+echo Word                           # Word
+echo A phrase                       # A phrase
+echo Where     are          spaces? # Where are spaces?
+echo "Where     are       spaces?"  # Where     are       spaces?
+```
+`;` semi-colon, `&&` ampersand, `||` pipe
+```bash
+echo line1; echo line2; echo line3 # independent of each other
+# line1
+# line2
+# line3
+echo line1 && echo line2 && echo line3 # and 
+# line1
+# line2
+# line3
+echo line1 || echo line2; echo line3 # or first 2 with priority on first
+# line1
+# line3
+```
+
+- some commands 
+	- `;` independent of each other, not depending on success or fail of previous ( not checking `?` before running `command 2` )
+		- finally `exit code` will be written 
+	- `&&` : they become dependent. 2nd command is done only if is done only if first command will be successful. (Before running 2nd command, `exit code= $? )` will be checked and will be done only if it was `0` )
+	- `||` : they become dependent. 2nd command is done only if first command be unsuccessful, `exit code != 0`. (Before running 2nd command, `exit code= $? )` will be checked and will be done only if it was not `0` )
+	- parameter `?` 
+		- before using command `?=`
+		- after using command: to store `exit code`
+```bash
+echo $?
+echo $HOME
+```
+- `exit` command
+	- close `terminal`
+	- change `?` value
+		- `exit 61` # still close the `terminal`
+		- `(exit 61)`
+			- `(exit <value>)` use different `value`s for script `exit` part per cases
+
+**Exercise** on result of sequence of commands
+
+###### Environmental variables
+- 2 types of variable
+	- variables
+		- system var (with Caps letters)
+			- local var
+			- environmental var
+		- user defined var. (with Lower letters)
+
+- store in RAM
+```bash
+V1=200
+V1=/opt
+V1=5000
+echo V1   # V1
+echo $V1  # 5000
+V2=/root/
+cd $V2
+V3=/rit/
+cd $V3 # not possible
+expr 7+8  # 7+8
+expr 7 + 8  # 15
+expr 7 - 8  # -1
+expr 7 + $V1 # non-integer argument
+cd /linux/
+touch $V2/linux/class/$V1/sample.txt 
+     # these are local variables existing in working bash.
+     # not avaiable in other bash/terminals = locations
+
+# change it to Enviornmental var 
+export V1
+export V3 
+
+export V4=/root/bin
+echo $V1 $V2 $V4
+```
+Terminal close make these unavailable
+- what to do with list of permanent parameters we need
+	- write in a proper file in `home` directory : named `startup scripts of shell`
+		- `~/.bash_profile` or `~/profile`
+			- writing `umask`
+		- `~/.bashrc`
+			- writing `aliases`
+		- `~/.bash_logout`  : things to do before logout 
+	- if want to do for all user, write on similar files under `/etc` 
+		- these file red first 
+			- before user stuffs
+			- user can overwrite by writing same var name with what needed 
+
+```bash
+find -name ".bashrc"
+```
+
+###### Linux variables
+- `?` = exit code of last command
+	- used to sequence commands
+- `PATH`
+- `USER`
+- `UID`
+- `HOME`   = `~` address for each user
+- `SHELL`
+- `PWD`   
+- `OLDPWD`    = `cd -`
+- `HISTSIZE`    500 or 1000
+- `MAIL`   = /var/spool/mail/user_name
+- `HOSTNAME`
+- `LS_COLORS`   
+
 
  
 ## Session 10
